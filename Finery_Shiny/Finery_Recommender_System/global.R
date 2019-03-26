@@ -1,0 +1,22 @@
+library(shiny)
+library(tidyverse)
+library(data.table)
+library(lubridate)
+library(shinythemes)
+library(plotly)
+library(RColorBrewer)
+library(ggthemes)
+library(shinydashboard)
+library(googleVis)
+
+ratings = fread("./data/all_ratings.csv")
+ratings %>% arrange(user_id, desc(rating))
+ratings$user_id = as.numeric(ratings$user_id)
+recs = fread("./data/all_reco_scores.csv")
+recs %>% arrange(uid, desc(est))
+recs$uid = as.numeric(recs$uid)
+items = fread("./data/items.csv")
+
+
+user_ids = unique(ratings$user_id)
+algorithms = unique(recs$algorithm)
