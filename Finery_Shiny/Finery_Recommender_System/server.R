@@ -1,43 +1,43 @@
 shinyServer(function(input, output) {
   #output$contact
   output$user_item_history = renderGvis({
-    gvisTable(ratings %>%
-                filter(., user_id == input$user_id & base == "product") %>%
-                arrange(desc(rating)) %>%
-                select(., product_id, rating) %>%
+    gvisTable(ratings_product %>%
+                filter(., user_id == input$user_id) %>%
+                select(., Item, Brand, Category) %>%
                 slice(1:input$num_recs))
   })
   
   output$user_brand_cat_history = renderGvis({
-    gvisTable(ratings %>%
-                filter(., user_id == input$user_id & base == "store_cat") %>%
-                arrange(desc(rating)) %>%
-                transmute(.,
-                          "Brand" = str_split(product_id, " - ")[[1]][1],
-                          "Category" = str_split(product_id, " - ")[[1]][3],
-                          "Rating" = rating) %>%
+    gvisTable(ratings_store_cat %>%
+                filter(., User == input$user_id) %>%
+                select(., Brand, Category) %>%
                 slice(1:input$num_recs))
   })
   
   output$item_recs = renderGvis({
-    gvisTable(recs %>%
-                filter(., uid == input$user_id & base == "product" & algorithm == input$algorithm) %>%
+    gvisTable(recs[[input$algo]] %>%
+                filter(., uid == input$user_id & base == "product") %>%
                 arrange(desc(est)) %>%
-                select(., iid, est) %>%
+                select(., iid) %>%
                 slice(1:input$num_recs))
   })
-  
-  
+
   output$brand_recs_anti = renderGvis({
-    gvisTable(recs %>%
-                filter(., uid == input$user_id & base == "store_cat" & score_type == "anti" & algorithm == input$algorithm) %>%
+    gvisTable(recs[[input$algo]] %>%
+                filter(., uid == input$user_id & base == "store_cat" & score_type == "anti") %>%
                 arrange(desc(est)) %>%
-                transmute(.,
-                          "Brand" = str_split(iid, " - ")[[1]][1],
-                          "Category" = str_split(iid, " - ")[[1]][3],
-                          "Rating" = est) %>%
+                select(., iid) %>%
                 slice(1:input$num_recs))
   })
+
+  output$brand_recs_known = renderGvis({
+    gvisTable(recs[[input$algo]] %>%
+                filter(., uid == input$user_id & base == "store_cat" & score_type == "known") %>%
+                arrange(desc(est)) %>%
+                select(., iid) %>%
+                slice(1:input$num_recs))
+  })
+  
   
   output$contact = renderUI({
     HTML(paste("Stella Kim is a data scientist with a passion for data analytics, visualization,\

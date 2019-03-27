@@ -9,9 +9,9 @@ shinyUI(
                                                    label = "User ID",
                                                    choices = user_ids),
                                     # Input algorithm of choice
-                                    selectizeInput(inputId = "algorithm",
+                                    selectizeInput(inputId = "algo",
                                                    label = "Algorithm",
-                                                   choices = algorithms),
+                                                   choices = algos),
                                     # selectizeInput(id = "filter",
                                     #                label = "Filter",
                                     #                choices = filters)#,
@@ -24,18 +24,18 @@ shinyUI(
                                   ),
                                   mainPanel(
                                     # Column with user item purchase history and user brand/category history
-                                    column(6, h3("Purchase History", align = "center"), br(),
-                                           h4("Items"), br(),
+                                    column(4, h3("Item Purchase History", align = "center"),
                                            htmlOutput("user_item_history"), br(),
-                                           h4("Brands & categories"), br(),
+                                           h3("Brands & Categories History", align = "center"), br(),
                                            htmlOutput("user_brand_cat_history")),
                                     # Column with item recommendations (anti), brand/category recommendations (anti), and brand/category recommendations (known; this also recommends previously-purchased categories)
-                                    column(6, h3("Product Recommendations", align = "center"), br(),
-                                           h4("Items (exc. prev. purch.)"), br(),
+                                    column(8, h3("Item Product Recommendations", align = "center"),
                                            htmlOutput("item_recs"), br(),
-                                           h4("Brands & categories (exc. prev. purch.)"), br(),
+                                           h3("Brands & Categories Recommendations", align = "center"), br(),
+                                           h4("Excluding previous purchases"), br(),
                                            htmlOutput("brand_recs_anti"), br(),
-                                           h4 ("Brands & categories (inc. prev. purch.)")),
+                                           h4 ("Including previous purchases"),
+                                           htmlOutput("brand_recs_known")),
                                     width = 10
                                   )
                                 )
