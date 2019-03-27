@@ -10,13 +10,12 @@ library(shinydashboard)
 library(googleVis)
 
 items = fread("./data/items.csv")
-items = items %>% mutate(., user_id = as.numeric(user_id))
-items = items %>%
-  select(., user_id, store_id, product_id, "Item" = item_name_lower, "Category" = `Category Name`) %>%
-  rename(., "brand_id" = store_id)
+items = items %>% mutate(., user_id = as.numeric(user_id)) %>%
+  select(., user_id, store_id, product_id, "Item" = item_name_lower, "Category" = `Category Name`) %>% rename(., "brand_id" = store_id)
+#occasions = fread("./data/occasions.csv")
+#items = left_join(items, occasions, by = c("Category" = "category"))
 ratings = fread("./data/all_ratings.csv")
-ratings = ratings %>% mutate(., user_id = as.numeric(user_id))
-ratings = ratings %>% arrange(user_id, desc(rating)) %>% rename(., "Rating" = rating)
+ratings = ratings %>% mutate(., user_id = as.numeric(user_id)) %>% arrange(user_id, desc(rating)) %>% rename(., "Rating" = rating)
 ratings_product = ratings %>% filter(., base == "product")
 ratings_product = left_join(ratings_product, items, by = c("user_id", "product_id")) %>% rename(., "Brand" = brand_id) %>% unique
 
@@ -31,29 +30,33 @@ recs = list()
 algos = sapply(str_split(sapply(str_split(dir("./data/algo"), "_"), function(l) l[4]), "\\."), function(l) l[1])
 for (i in algos){
   recs[[i]] = fread(paste0("./data/algo/all_reco_scores_", i, ".csv"))
-  recs[[i]] = recs[[i]] %>% mutate(., uid = as.numeric(uid))
-  recs[[i]] = recs[[i]] %>% arrange(uid, desc(est))
+  recs[[i]] = recs[[i]] %>% mutate(., uid = as.numeric(uid)) %>% arrange(uid, desc(est))
 }
 
 recs_product = list()
 for (i in algos){
   recs_product[[i]] = recs[[i]] %>% filter(., base == "product")
-  #left_join(recs_product[[i]], items, by = c("user_id", "product_id")) %>% rename(., "Brand" = brand_id) %>% unique
+  recs_product[[i]] = left_join(recs_product[[i]], items, by = c("iid" = "product_id")) %>%
+    filter(score_type == "anti") %>% select(., uid, iid, est, base, score_type, Brand = brand_id, Item, Category) %>% unique()
 }
-
-#head(left_join(recs_product[[1]], items, by = c("uid" = "user_id", "iid" = "product_id")) %>% rename(., "Brand" = brand_id) %>% unique())
-
-
 
 recs_store_cat = list()
 for (i in algos){
   recs_store_cat[[i]] = recs[[i]] %>% filter(., base == "store_cat")
+  recs_store_cat[[i]] = recs_store_cat[[i]] %>% transmute(., uid, est, base, score_type, 
+                                    Brand = sapply(sapply(recs_store_cat[[i]]$iid, str_split, " - "), function(l) l[1]),
+                                    Category = sapply(sapply(recs_store_cat[[i]]$iid, str_split, " - "), function(l) l[3])) %>% unique()
 }
 
 
-#recs %>% arrange(uid, desc(est))
-#recs$uid = as.numeric(recs$uid)
-
-items = fread("./data/items.csv")
 
 user_ids = unique(ratings$user_id)
+brands = c("all",unique(items$brand_id))
+categories = c("all", unique(items$Category))
+
+
+
+
+
+
+

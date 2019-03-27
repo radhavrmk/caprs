@@ -1,5 +1,5 @@
 shinyServer(function(input, output) {
-  #output$contact
+  
   output$user_item_history = renderGvis({
     gvisTable(ratings_product %>%
                 filter(., user_id == input$user_id) %>%
@@ -14,28 +14,59 @@ shinyServer(function(input, output) {
                 slice(1:input$num_recs))
   })
   
+  item_recs_reactive = reactive({
+    recs_product[[input$algo]] %>%
+      filter(., uid == input$user_id & score_type == "anti") %>%
+      arrange(desc(est)) %>%
+      select(., Item, Brand, Category)
+  })
+  
   output$item_recs = renderGvis({
-    gvisTable(recs[[input$algo]] %>%
-                filter(., uid == input$user_id & base == "product") %>%
-                arrange(desc(est)) %>%
-                select(., iid) %>%
-                slice(1:input$num_recs))
-  })
+    if ((input$brand_filter != "all") && (input$category_filter != "all")){
+      gvisTable(item_recs_reactive() %>% filter(., Brand %in% input$brand_filter, Category %in% input$category_filter) %>% slice(1:input$num_recs))
+    } else if ((input$brand_filter != "all") && (input$category_filter == "all")){
+      gvisTable(item_recs_reactive() %>% filter(., Brand %in% input$brand_filter) %>% slice(1:input$num_recs))
+    } else if ((input$brand_filter == "all") && (input$category_filter != "all")){
+      gvisTable(item_recs_reactive() %>% filter(., Category %in% input$category_filter) %>% slice(1:input$num_recs))
+    } else {
+      gvisTable(item_recs_reactive() %>% slice(1:input$num_recs))
+    }
+    })
 
+  brand_recs_anti_reactive = reactive({
+    recs_store_cat[[input$algo]] %>%
+      filter(., uid == input$user_id & score_type == "anti") %>%
+      arrange(desc(est)) %>%
+      select(., Brand, Category)
+  })
   output$brand_recs_anti = renderGvis({
-    gvisTable(recs[[input$algo]] %>%
-                filter(., uid == input$user_id & base == "store_cat" & score_type == "anti") %>%
-                arrange(desc(est)) %>%
-                select(., iid) %>%
-                slice(1:input$num_recs))
+    if (input$brand_filter != "all" && input$category_filter != "all"){
+      gvisTable(brand_recs_anti_reactive() %>% filter(., Brand %in% input$brand_filter, Category %in% input$category_filter) %>% slice(1:input$num_recs))
+    } else if ((input$brand_filter != "all") && (input$category_filter == "all")){
+      gvisTable(brand_recs_anti_reactive() %>% filter(., Brand %in% input$brand_filter) %>% slice(1:input$num_recs))
+    } else if ((input$brand_filter == "all") && (input$category_filter != "all")){
+      gvisTable(brand_recs_anti_reactive() %>% filter(., Category %in% input$category_filter) %>% slice(1:input$num_recs))
+    } else {
+      gvisTable(brand_recs_anti_reactive() %>% slice(1:input$num_recs))
+    }
   })
 
+  brand_recs_known_reactive = reactive({
+    recs_store_cat[[input$algo]] %>%
+      filter(., uid == input$user_id & score_type == "known") %>%
+      arrange(desc(est)) %>%
+      select(., Brand, Category)
+  })
   output$brand_recs_known = renderGvis({
-    gvisTable(recs[[input$algo]] %>%
-                filter(., uid == input$user_id & base == "store_cat" & score_type == "known") %>%
-                arrange(desc(est)) %>%
-                select(., iid) %>%
-                slice(1:input$num_recs))
+    if ((input$brand_filter != "all") && (input$category_filter != "all")){
+      gvisTable(brand_recs_known_reactive() %>% filter(., Brand %in% input$brand_filter, Category %in% input$category_filter) %>% slice(1:input$num_recs))
+    } else if ((input$brand_filter != "all") && (input$category_filter == "all")){
+      gvisTable(brand_recs_known_reactive() %>% filter(., Brand %in% input$brand_filter) %>% slice(1:input$num_recs))
+    } else if ((input$brand_filter == "all") && (input$category_filter != "all")){
+      gvisTable(brand_recs_known_reactive() %>% filter(., Category %in% input$category_filter) %>% slice(1:input$num_recs))
+    } else {
+      gvisTable(brand_recs_known_reactive() %>% slice(1:input$num_recs))
+    }
   })
   
   
