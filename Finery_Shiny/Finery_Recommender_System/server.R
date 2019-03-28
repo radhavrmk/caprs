@@ -7,14 +7,6 @@ shinyServer(function(input, output) {
                 unique() %>%
                 slice(1:input$num_recs))
   })
-  
-  output$user_item_history2 = renderGvis({
-    gvisTable(ratings_product %>%
-                filter(., user_id == input$user_id2) %>%
-                select(., Item, Brand, Category) %>%
-                unique() %>%
-                slice(1:input$num_recs))
-  })
 
   output$user_brand_cat_history = renderGvis({
     gvisTable(ratings_store_cat %>%
@@ -75,34 +67,34 @@ shinyServer(function(input, output) {
   })
   
   output$item_recs2 = renderGvis({
-    if ((input$brand_filter != "all") && (input$category_filter != "all") && (input$occasion_filter != "all")){
+    if ((input$brand_filter2 != "all") && (input$category_filter2 != "all") && (input$occasion_filter2 != "all")){
       gvisTable(item_recs_reactive2() %>%
-                  filter(., Brand %in% input$brand_filter, Category %in% input$category_filter, Occasion %in% input$occasion_filter) %>% 
+                  filter(., Brand %in% input$brand_filter2, Category %in% input$category_filter2, Occasion %in% input$occasion_filter2) %>% 
                   select(., -c("Occasion")) %>%
                   unique() %>% slice(1))
-    } else if ((input$brand_filter != "all") && (input$category_filter != "all") && (input$occasion_filter == "all")){
+    } else if ((input$brand_filter2 != "all") && (input$category_filter2 != "all") && (input$occasion_filter2 == "all")){
       gvisTable(item_recs_reactive2() %>%
-                  filter(., Brand %in% input$brand_filter, Category %in% input$category_filter) %>% 
+                  filter(., Brand %in% input$brand_filter2, Category %in% input$category_filter2) %>% 
                   select(., -c("Occasion")) %>%
                   unique() %>% slice(1))
-    } else if ((input$brand_filter != "all") && (input$category_filter == "all") && (input$occasion_filter == "all")){
+    } else if ((input$brand_filter2 != "all") && (input$category_filter2 == "all") && (input$occasion_filter2 == "all")){
       gvisTable(item_recs_reactive2() %>%
-                  filter(., Brand %in% input$brand_filter) %>% 
+                  filter(., Brand %in% input$brand_filter2) %>% 
                   select(., -c("Occasion")) %>%
                   unique() %>% slice(1))
-    } else if ((input$brand_filter == "all") && (input$category_filter != "all") && (input$occasion_filter != "all")){
+    } else if ((input$brand_filter2 == "all") && (input$category_filter2 != "all") && (input$occasion_filter2 != "all")){
       gvisTable(item_recs_reactive2() %>%
-                  filter(., Category %in% input$category_filter, Occasion %in% input$occasion_filter) %>% 
+                  filter(., Category %in% input$category_filter2, Occasion %in% input$occasion_filter2) %>% 
                   select(., -c("Occasion")) %>%
                   unique() %>% slice(1))
-    } else if ((input$brand_filter == "all") && (input$category_filter != "all") && (input$occasion_filter == "all")){
+    } else if ((input$brand_filter2 == "all") && (input$category_filter2 != "all") && (input$occasion_filter2 == "all")){
       gvisTable(item_recs_reactive2() %>%
-                  filter(., Category %in% input$category_filter) %>% 
+                  filter(., Category %in% input$category_filter2) %>% 
                   select(., -c("Occasion")) %>%
                   unique() %>% slice(1))
-    }  else if ((input$brand_filter == "all") && (input$category_filter == "all") && (input$occasion_filter != "all")){
+    }  else if ((input$brand_filter2 == "all") && (input$category_filter2 == "all") && (input$occasion_filter2 != "all")){
       gvisTable(item_recs_reactive2() %>%
-                  filter(., Occasion %in% input$occasion_filter) %>% 
+                  filter(., Occasion %in% input$occasion_filter2) %>% 
                   select(., -c("Occasion")) %>%
                   unique() %>% slice(1))
     } else {

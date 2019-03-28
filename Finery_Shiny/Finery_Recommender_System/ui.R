@@ -1,30 +1,47 @@
 shinyUI(
-  fluidPage(shinythemes::themeSelector(),
+  fluidPage(theme = shinytheme("flatly"),
+    #shinythemes::themeSelector(),
             navbarPage("Finery X NYCDSA: UI of the Future",
-                       # tabPanel("What Should I Wear Today?",
-                       #          sidebarLayout(
-                       #            sidebarPanel(
-                       #              # Input User ID
-                       #              selectizeInput(inputId = "user_id2",
-                       #                             label = "User ID",
-                       #                             choices = user_ids),
-                       #              # Input algorithm of choice
-                       #              selectizeInput(inputId = "algo2",
-                       #                             label = "Algorithm",
-                       #                             choices = algos),
-                       #              width = 2
-                       #              ),
-                       #            mainPanel(
-                       #              # Column with user item purchase history and user brand/category history
-                       #              column(12, h3("Item Purchase History", align = "center"), br(),
-                       #                     htmlOutput("user_item_history2"), br(),
-                       #                     h3("Item Recommendation", align = "center"), br(),
-                       #                     htmlOutput("item_recs2"),
-                       #                     align = "center"),
-                       #              width = 10
-                       #              )
-                       #          )
-                       # ),
+                       tabPanel("What Should I Wear Today?",
+                                sidebarLayout(
+                                  sidebarPanel(
+                                    # Input User ID
+                                    selectizeInput(inputId = "user_id2",
+                                                   label = "User ID",
+                                                   choices = user_ids),
+                                    # Input algorithm of choice
+                                    selectizeInput(inputId = "algo2",
+                                                   label = "Algorithm",
+                                                   choices = algos),
+                                    # Input brand filter
+                                    selectizeInput(inputId = "brand_filter2",
+                                                   label = "Brands",
+                                                   choices = brands,
+                                                   multiple = TRUE,
+                                                   selected = "all"),
+                                    # Input category filter
+                                    selectizeInput(inputId = "category_filter2",
+                                                   label = "Categories",
+                                                   choices = categories, 
+                                                   multiple = TRUE,
+                                                   selected = "all"),
+                                    # Input occasion filter
+                                    selectizeInput(inputId = "occasion_filter2",
+                                                   label = "Occasions",
+                                                   choices = occasion_choices, 
+                                                   multiple = TRUE,
+                                                   selected = "all"),
+                                    width = 2
+                                    ),
+                                  mainPanel(
+                                    # Column with user item purchase history and user brand/category history
+                                    column(12, h3("Item Recommendation", align = "center"), br(),
+                                           htmlOutput("item_recs2"),
+                                           align = "center"),
+                                    width = 10
+                                    )
+                                )
+                       ),
                        tabPanel("Wardrobe Wizard",
                                 sidebarLayout(
                                   sidebarPanel(
@@ -87,15 +104,6 @@ shinyUI(
                                   )
                                 )
                        ),
-                       tabPanel("Algorithms",
-                                sidebarLayout(
-                                  sidebarPanel(
-                                    selectizeInput(inputId = "algo2",
-                                                   label = "Algorithm",
-                                                   choices = algos)
-                                  ),
-                                  mainPanel()
-                                )),
                        tabPanel("About Us",
                                 htmlOutput("contact"))
                        )
