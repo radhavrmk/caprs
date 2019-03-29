@@ -122,6 +122,8 @@ shinyServer(function(input, output) {
   })
   
   observeEvent(input$like, {
+    newValue = i_rec() + 1
+    i_rec(newValue)
     old_value = liked_items()
     new_value = tail(item_psed(),1)
     liked_df = rbind(old_value, new_value)
