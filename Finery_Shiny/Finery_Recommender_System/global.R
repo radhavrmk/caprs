@@ -1,19 +1,22 @@
 library(shiny)
-library(tidyverse)
-library(data.table)
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(data.table))
 library(shinythemes)
 library(RColorBrewer)
 library(ggthemes)
-library(googleVis)
+suppressPackageStartupMessages(library(bit64))
+#library(googleVis)
 suppressPackageStartupMessages(library(googleVis))
 
 items = fread("./data/items.csv")
 items = items %>% mutate(., user_id = as.numeric(user_id)) %>%
   select(., user_id, store_id, product_id, "Item" = item_name_lower, "Category" = `Category Name`) %>% rename(., "brand_id" = store_id)
 occasions = fread("./data/occasions.csv")
-occasions = occasions %>% rename(., "Occasion" = occassion)
+occasions = occasions %>% rename(., "Occasion" = occassion) %>% select(., -c("category_id"))
 occasion_choices = c("all", unique(occasions$Occasion))
 items = left_join(items, occasions, by = c("Category" = "category"))
+cat_df = fread("./data/categories.csv")
+items = left_join(items, cat_df, by = c("Category" = "Category Name"))
 ratings = fread("./data/rating_subset.csv")
 ratings = ratings %>% mutate(., user_id = as.numeric(user_id)) %>% arrange(user_id, desc(rating)) %>% rename(., "Rating" = rating)
 ratings_product = ratings %>% filter(., base == "product")
@@ -35,13 +38,13 @@ for (i in algos){
 
 recs [["LightFM_Basic"]] = recs[["LightFM_Basic"]] %>% mutate(., base = str_replace(base, "-", "_"))
 
-occs = items %>% select(., brand_id, product_id, Item, Category, Occasion)
+occs = items %>% select(., brand_id, product_id, Item, Category, `Category ID`, Occasion)
 
 recs_product = list()
 for (i in algos){
   recs_product[[i]] = recs[[i]] %>% filter(., base == "product", score_type == "anti")
   recs_product[[i]] = left_join(recs_product[[i]], occs, by = c("iid" = "product_id")) %>%
-    select(., uid, iid, est, base, score_type, Brand = brand_id, Item, Category, Occasion) %>% unique()
+    select(., uid, iid, est, base, score_type, Brand = brand_id, Item, Category, Occasion, `Category ID`) %>% unique()
 }
 
 recs_store_cat = list()
@@ -49,6 +52,7 @@ for (i in algos){
   recs_store_cat[[i]] = recs[[i]] %>% filter(., base == "store_cat")
   recs_store_cat[[i]] = recs_store_cat[[i]] %>% transmute(., uid, iid, est, base, score_type, 
                                     Brand = sapply(sapply(recs_store_cat[[i]]$iid, str_split, " - "), function(l) l[1]),
+                                    "Category ID" = sapply(sapply(recs_store_cat[[i]]$iid, str_split, " - "), function(l) l[2]),
                                     Category = sapply(sapply(recs_store_cat[[i]]$iid, str_split, " - "), function(l) l[3])) %>% unique()
   recs_store_cat[[i]] = left_join(recs_store_cat[[i]], occasions, by = c("Category" = "category"))
 }
@@ -57,8 +61,12 @@ user_ids = unique(ratings$user_id)
 brands = c("all",unique(items$brand_id))
 categories = c("all", unique(items$Category))
 
-
-
+rm(ratings)
+rm(items)
+rm(occs)
+rm(recs)
+rm(cat_df)
+rm(occasions)
 
 
 

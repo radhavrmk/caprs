@@ -55,7 +55,8 @@ shinyServer(function(input, output) {
                   select(., -c("Occasion")) %>%
                   unique() %>% slice(1:input$num_recs))
     } else {
-      gvisTable(item_recs_reactive() %>% select(., -c("Occasion")) %>% unique() %>% slice(1:input$num_recs))
+      gvisTable(item_recs_reactive() %>% select(., -c("Occasion")) %>% unique() %>% slice(1:input$num_recs),
+                options = list(fontSize=20))
     }
     })
   
@@ -63,42 +64,174 @@ shinyServer(function(input, output) {
     recs_product[[input$algo2]] %>%
       filter(., uid == input$user_id2 & score_type == "anti") %>%
       arrange(desc(est)) %>%
-      select(., Item, Brand, Category, Occasion)
+      select(., Item, Brand, Category, Occasion, `Category ID`)
   })
+  
+  i_rec = reactiveVal(1)
+  
+  item_recs_reactive3 = reactive({
+    recs_product[[input$algo2]] %>%
+      filter(., uid == input$user_id2 & score_type == "anti") %>%
+      arrange(desc(est)) %>%
+      select(., uid, Item, Brand, Category, Occasion)
+  })
+  
+  item_psed = reactive({
+    if ((input$brand_filter2 != "all") && (input$category_filter2 != "all") && (input$occasion_filter2 != "all")){
+      item_recs_reactive3() %>%
+        filter(., Brand %in% input$brand_filter2, Category %in% input$category_filter2, Occasion %in% input$occasion_filter2) %>% 
+        select(., -c("Occasion")) %>%
+        unique() %>% slice(1:i_rec())
+    } else if ((input$brand_filter2 != "all") && (input$category_filter2 != "all") && (input$occasion_filter2 == "all")){
+      item_recs_reactive3() %>%
+        filter(., Brand %in% input$brand_filter2, Category %in% input$category_filter2) %>% 
+        select(., -c("Occasion")) %>%
+        unique() %>% slice(1:i_rec())
+    } else if ((input$brand_filter2 != "all") && (input$category_filter2 == "all") && (input$occasion_filter2 == "all")){
+      item_recs_reactive3() %>%
+        filter(., Brand %in% input$brand_filter2) %>% 
+        select(., -c("Occasion")) %>%
+        unique() %>% slice(1:i_rec())
+    } else if ((input$brand_filter2 == "all") && (input$category_filter2 != "all") && (input$occasion_filter2 != "all")){
+      item_recs_reactive3() %>%
+        filter(., Category %in% input$category_filter2, Occasion %in% input$occasion_filter2) %>% 
+        select(., -c("Occasion")) %>%
+        unique() %>% slice(1:i_rec())
+    } else if ((input$brand_filter2 == "all") && (input$category_filter2 != "all") && (input$occasion_filter2 == "all")){
+      item_recs_reactive3() %>%
+        filter(., Category %in% input$category_filter2) %>% 
+        select(., -c("Occasion")) %>%
+        unique() %>% slice(1:i_rec())
+    }  else if ((input$brand_filter2 == "all") && (input$category_filter2 == "all") && (input$occasion_filter2 != "all")){
+      item_recs_reactive3() %>%
+        filter(., Occasion %in% input$occasion_filter2) %>% 
+        select(., -c("Occasion")) %>%
+        unique() %>% slice(1:i_rec())
+    } else {
+      item_recs_reactive3() %>% select(., -c("Occasion")) %>% unique() %>% slice(1:i_rec())
+    }
+  })
+  
+  observeEvent(input$go, {
+    newValue = i_rec() + 1
+    i_rec(newValue)
+    old_value = passed_items()
+    new_value = head(tail(item_psed(),2),1)
+    trash_df = rbind(old_value, new_value)
+    passed_items(trash_df)
+  })
+  
+  observeEvent(input$like, {
+    old_value = liked_items()
+    new_value = tail(item_psed(),1)
+    liked_df = rbind(old_value, new_value)
+    liked_items(liked_df)
+  })
+  
+  passed_items = reactiveVal(data.frame(uid = numeric(),
+                                        Item = character(),
+                                        Brand = character(),
+                                        Category = character()))
+  
+  liked_items = reactiveVal(data.frame(uid = numeric(),
+                                       Item = character(),
+                                       Brand = character(),
+                                       Category = character()))
+  
+  output$item_passed = renderGvis(
+    gvisTable(passed_items())
+  )
+  
+  output$item_liked = renderGvis(
+    gvisTable(liked_items())
+  )
+  
+  output$clothing_image = renderImage({
+    if ((input$brand_filter2 != "all") && (input$category_filter2 != "all") && (input$occasion_filter2 != "all")){
+      filename = normalizePath(file.path("./images",
+                                         paste0(item_recs_reactive2() %>%
+                                                  filter(., Brand %in% input$brand_filter2, Category %in% input$category_filter2, Occasion %in% input$occasion_filter2) %>% 
+                                                  select(., -c("Occasion")) %>% 
+                                                  unique() %>% slice(i_rec()) %>% 
+                                                  pull(`Category ID`), ".jpg")))
+    } else if ((input$brand_filter2 != "all") && (input$category_filter2 != "all") && (input$occasion_filter2 == "all")){
+      filename = normalizePath(file.path("./images",
+                                         paste0(item_recs_reactive2() %>%
+                                                  filter(., Brand %in% input$brand_filter2, Category %in% input$category_filter2) %>% 
+                                                  select(., -c("Occasion")) %>% 
+                                                  unique() %>% slice(i_rec()) %>% 
+                                                  pull(`Category ID`), ".jpg")))
+    } else if ((input$brand_filter2 != "all") && (input$category_filter2 == "all") && (input$occasion_filter2 == "all")){
+      filename = normalizePath(file.path("./images",
+                                         paste0(item_recs_reactive2() %>%
+                                                  filter(., Brand %in% input$brand_filter2) %>% 
+                                                  select(., -c("Occasion")) %>% 
+                                                  unique() %>% slice(i_rec()) %>% 
+                                                  pull(`Category ID`), ".jpg")))
+    } else if ((input$brand_filter2 == "all") && (input$category_filter2 != "all") && (input$occasion_filter2 != "all")){
+      filename = normalizePath(file.path("./images",
+                                         paste0(item_recs_reactive2() %>%
+                                                  filter(., Category %in% input$category_filter2, Occasion %in% input$occasion_filter2) %>% 
+                                                  select(., -c("Occasion")) %>% 
+                                                  unique() %>% slice(i_rec()) %>% 
+                                                  pull(`Category ID`), ".jpg")))
+    } else if ((input$brand_filter2 == "all") && (input$category_filter2 != "all") && (input$occasion_filter2 == "all")){
+      filename = normalizePath(file.path("./images",
+                                         paste0(item_recs_reactive2() %>%
+                                                  filter(., Category %in% input$category_filter2) %>% 
+                                                  select(., -c("Occasion")) %>% 
+                                                  unique() %>% slice(i_rec()) %>% 
+                                                  pull(`Category ID`), ".jpg")))
+    }  else if ((input$brand_filter2 == "all") && (input$category_filter2 == "all") && (input$occasion_filter2 != "all")){
+      filename = normalizePath(file.path("./images",
+                                         paste0(item_recs_reactive2() %>%
+                                                  filter(., Occasion %in% input$occasion_filter2) %>%
+                                                  select(., -c("Occasion")) %>% 
+                                                  unique() %>% slice(i_rec()) %>% 
+                                                  pull(`Category ID`), ".jpg")))
+    } else {
+      filename = normalizePath(file.path("./images",
+                                         paste0(item_recs_reactive2() %>%
+                                                  select(., -c("Occasion")) %>% 
+                                                  unique() %>% slice(i_rec()) %>% 
+                                                  pull(`Category ID`), ".jpg")))
+    }
+    list(src = filename, width = "30%")
+  }, deleteFile = FALSE)
   
   output$item_recs2 = renderGvis({
     if ((input$brand_filter2 != "all") && (input$category_filter2 != "all") && (input$occasion_filter2 != "all")){
       gvisTable(item_recs_reactive2() %>%
                   filter(., Brand %in% input$brand_filter2, Category %in% input$category_filter2, Occasion %in% input$occasion_filter2) %>% 
                   select(., -c("Occasion")) %>%
-                  unique() %>% slice(1))
+                  unique() %>% slice(i_rec()))
     } else if ((input$brand_filter2 != "all") && (input$category_filter2 != "all") && (input$occasion_filter2 == "all")){
       gvisTable(item_recs_reactive2() %>%
                   filter(., Brand %in% input$brand_filter2, Category %in% input$category_filter2) %>% 
                   select(., -c("Occasion")) %>%
-                  unique() %>% slice(1))
+                  unique() %>% slice(i_rec()))
     } else if ((input$brand_filter2 != "all") && (input$category_filter2 == "all") && (input$occasion_filter2 == "all")){
       gvisTable(item_recs_reactive2() %>%
                   filter(., Brand %in% input$brand_filter2) %>% 
                   select(., -c("Occasion")) %>%
-                  unique() %>% slice(1))
+                  unique() %>% slice(i_rec()))
     } else if ((input$brand_filter2 == "all") && (input$category_filter2 != "all") && (input$occasion_filter2 != "all")){
       gvisTable(item_recs_reactive2() %>%
                   filter(., Category %in% input$category_filter2, Occasion %in% input$occasion_filter2) %>% 
                   select(., -c("Occasion")) %>%
-                  unique() %>% slice(1))
+                  unique() %>% slice(i_rec()))
     } else if ((input$brand_filter2 == "all") && (input$category_filter2 != "all") && (input$occasion_filter2 == "all")){
       gvisTable(item_recs_reactive2() %>%
                   filter(., Category %in% input$category_filter2) %>% 
                   select(., -c("Occasion")) %>%
-                  unique() %>% slice(1))
+                  unique() %>% slice(i_rec()))
     }  else if ((input$brand_filter2 == "all") && (input$category_filter2 == "all") && (input$occasion_filter2 != "all")){
       gvisTable(item_recs_reactive2() %>%
                   filter(., Occasion %in% input$occasion_filter2) %>% 
                   select(., -c("Occasion")) %>%
-                  unique() %>% slice(1))
+                  unique() %>% slice(i_rec()))
     } else {
-      gvisTable(item_recs_reactive2() %>% select(., -c("Occasion")) %>% unique() %>% slice(1))
+      gvisTable(item_recs_reactive2() %>% select(., -c("Occasion")) %>% unique() %>% slice(i_rec()))
     }
   })
 
@@ -108,6 +241,7 @@ shinyServer(function(input, output) {
       arrange(desc(est)) %>%
       select(., Brand, Category, Occasion)
   })
+  
   output$brand_recs_anti = renderGvis({
     if ((input$brand_filter != "all") && (input$category_filter != "all") && (input$occasion_filter != "all")){
       gvisTable(brand_recs_anti_reactive() %>%

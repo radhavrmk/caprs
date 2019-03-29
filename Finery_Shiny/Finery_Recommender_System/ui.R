@@ -36,10 +36,21 @@ shinyUI(
                                   mainPanel(
                                     # Column with user item purchase history and user brand/category history
                                     column(12, h3("Item Recommendation", align = "center"), br(),
-                                           htmlOutput("item_recs2"),
-                                           align = "center"),
+                                           htmlOutput("item_recs2"), br(),
+                                           imageOutput("clothing_image"), br(), br(),
+                                           actionButton("go", "Pass"),
+                                           actionButton("like", "Like"),
+                                           align = "center"),br(),
+                                    fluidRow(
+                                      column(6,h3("Pass"),
+                                             htmlOutput("item_passed"),
+                                             align="center"),
+                                      column(6,h3("Shopping Cart"),
+                                             htmlOutput("item_liked"),
+                                             align="center")
+                                    ),
                                     width = 10
-                                    )
+                                  )
                                 )
                        ),
                        tabPanel("Wardrobe Wizard",

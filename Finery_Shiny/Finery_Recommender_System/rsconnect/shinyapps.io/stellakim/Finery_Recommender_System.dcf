@@ -1,0 +1,12 @@
+name: Finery_Recommender_System
+title: Finery_Recommender_System
+username:
+account: stellakim
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 822025
+bundleId: 1972483
+url: https://stellakim.shinyapps.io/Finery_Recommender_System/
+when: 1553828826.6871
+asMultiple: FALSE
+asStatic: FALSE
